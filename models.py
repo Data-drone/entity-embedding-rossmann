@@ -80,6 +80,7 @@ class NN_with_EntityEmbedding(Model):
         return X_list
 
     def __build_keras_model(self):
+
         in_vec = []
         models = []
 
@@ -288,15 +289,18 @@ class NN_with_EntityEmbedding(Model):
 
         main_merger = concatenate(models)
         main_dropout_1 = Dropout(0.02)(main_merger)
-        main_dense_1 = Dense(1000, init='uniform')(main_dropout_1)
+        main_dense_1 = Dense(1000, kernel_initializer='uniform')(main_dropout_1)
         main_activation_1 = Activation('relu')(main_dense_1)
-        main_dense_2 = Dense(500, init='uniform')(main_activation_1)
+        main_dense_2 = Dense(500, kernel_initializer='uniform')(main_activation_1)
         main_activation_2 = Activation('relu')(main_dense_2)
         main_dense_3 = Dense(1)(main_activation_2)
         main_activation_3 = Activation('sigmoid')(main_dense_3)
 
-        self.model = Model(inputs = in_vec, outputs = main_activation_3)
-        self.model.compile(loss='mean_absolute_error', optimizer='adam')
+	# something wrong here need to fix
+        model = Model(inputs = in_vec, outputs = main_activation_3)
+        model.compile(loss='mean_absolute_error', optimizer='adam')
+
+        self.model = model
 
     def _val_for_fit(self, val):
         val = numpy.log(val) / self.max_log_y
