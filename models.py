@@ -4,10 +4,17 @@ import math
 
 from sklearn.preprocessing import StandardScaler
 
-from keras.models import Sequential
-from keras.layers.core import Dense, Dropout, Activation, Merge, Reshape
-from keras.layers.embeddings import Embedding
+#from keras.models import Sequential
+#from keras.layers.core import Dense, Dropout, Activation, Reshape
+#from keras.layers.embeddings import Embedding
+#from keras.layers import Merge
 from keras.callbacks import ModelCheckpoint
+
+# switch over to new keras
+from keras.models import Model
+from keras.layers import Dense, Flatten, Dropout, Input, Embedding, Reshape, Activation
+from keras.layers import concatenate
+
 
 from prepare_nn_features import split_features
 
@@ -73,168 +80,205 @@ class NN_with_EntityEmbedding(Model):
         return X_list
 
     def __build_keras_model(self):
+        in_vec = []
         models = []
 
-        model_store = Sequential()
-        model_store.add(Embedding(1115, 50, input_length=1))
-        model_store.add(Reshape(dims=(50,)))
-        models.append(model_store)
+        model_store_in = Input(shape=(1,))
+        model_store_embedding = Embedding(1115, 50, input_length = 1)(model_store_in)
+        model_store_reshape = Reshape(target_shape=(50,))(model_store_embedding)
+        in_vec.append(model_store_in)
+        models.append(model_store_reshape)
 
-        model_dow = Sequential()
-        model_dow.add(Embedding(7, 6, input_length=1))
-        model_dow.add(Reshape(dims=(6,)))
-        models.append(model_dow)
+        model_dow_in = Input(shape=(1,))
+        model_dow_embedding = Embedding(7, 6, input_length=1)(model_dow_in)
+        model_dow_reshape = Reshape(target_shape=(6,))(model_dow_embedding)
+        in_vec.append(model_dow_in)          
+        models.append(model_dow_reshape)
 
-        model_promo = Sequential()
-        model_promo.add(Dense(1, input_dim=1))
-        models.append(model_promo)
+        model_promo_in = Input(shape=(1,))
+        model_promo_dense = Dense(1, input_dim=1)(model_promo_in)
+        in_vec.append(model_promo_in) 
+        models.append(model_promo_dense)
 
-        model_year = Sequential()
-        model_year.add(Embedding(3, 2, input_length=1))
-        model_year.add(Reshape(dims=(2,)))
-        models.append(model_year)
+        model_year_in = Input(shape=(1,))
+        model_year_embedding = Embedding(3, 2, input_length=1)(model_year_in)
+        model_year_reshape = Reshape(target_shape=(2,))(model_year_embedding)
+        in_vec.append(model_year_in)  
+        models.append(model_year_reshape)
 
-        model_month = Sequential()
-        model_month.add(Embedding(12, 6, input_length=1))
-        model_month.add(Reshape(dims=(6,)))
-        models.append(model_month)
+        model_month_in = Input(shape=(1,))
+        model_month_embedding = Embedding(12, 6, input_length=1)(model_month_in)
+        model_month_reshape = Reshape(target_shape=(6,))(model_month_embedding)
+        in_vec.append(model_month_in)          	
+        models.append(model_month_reshape)
 
-        model_day = Sequential()
-        model_day.add(Embedding(31, 10, input_length=1))
-        model_day.add(Reshape(dims=(10,)))
-        models.append(model_day)
+        model_day_in = Input(shape=(1,))
+        model_day_embedding = Embedding(31, 10, input_length=1)(model_day_in)
+        model_day_reshape = Reshape(target_shape=(10,))(model_day_embedding)
+        in_vec.append(model_day_in)  
+        models.append(model_day_reshape)
 
-        model_stateholiday = Sequential()
-        model_stateholiday.add(Embedding(4, 3, input_length=1))
-        model_stateholiday.add(Reshape(dims=(3,)))
-        models.append(model_stateholiday)
+        model_stateholiday_in = Input(shape=(1,))
+        model_stateholiday_embedding = Embedding(4, 3, input_length=1)(model_stateholiday_in) 
+        model_stateholiday_reshape = Reshape(target_shape=(3,))(model_stateholiday_embedding)
+        in_vec.append(model_stateholiday_in) 
+        models.append(model_stateholiday_reshape)
+	
+        model_school_in = Input(shape=(1,))
+        model_school_dense = Dense(1, input_dim=1)(model_school_in)
+        in_vec.append(model_school_in) 
+        models.append(model_school_dense)
 
-        model_school = Sequential()
-        model_school.add(Dense(1, input_dim=1))
-        models.append(model_school)
+        model_competemonths_in = Input(shape=(1,))
+        model_competemonths_embedding = Embedding(25, 2, input_length=1)(model_competemonths_in)
+        model_competemonths_reshape = Reshape(target_shape=(2,))(model_competemonths_embedding)
+        in_vec.append(model_competemonths_in)  
+        models.append(model_competemonths_reshape)
 
-        model_competemonths = Sequential()
-        model_competemonths.add(Embedding(25, 2, input_length=1))
-        model_competemonths.add(Reshape(dims=(2,)))
-        models.append(model_competemonths)
+        model_promo2weeks_in = Input(shape=(1,))
+        model_promo2weeks_embedding = Embedding(26, 1, input_length=1)(model_promo2weeks_in)
+        model_promo2weeks_reshape = Reshape(target_shape=(1,))(model_promo2weeks_embedding)
+        in_vec.append(model_promo2weeks_in)  
+        models.append(model_promo2weeks_reshape)
 
-        model_promo2weeks = Sequential()
-        model_promo2weeks.add(Embedding(26, 1, input_length=1))
-        model_promo2weeks.add(Reshape(dims=(1,)))
-        models.append(model_promo2weeks)
+        model_lastestpromo2months_in = Input(shape=(1,))
+        model_lastestpromo2months_embedding = Embedding(4, 1, input_length=1)(model_lastestpromo2months_in) 
+        model_lastestpromo2months_reshape = Reshape(target_shape=(1,))(model_lastestpromo2months_embedding)
+        in_vec.append(model_lastestpromo2months_in) 
+        models.append(model_lastestpromo2months_reshape)
 
-        model_lastestpromo2months = Sequential()
-        model_lastestpromo2months.add(Embedding(4, 1, input_length=1))
-        model_lastestpromo2months.add(Reshape(dims=(1,)))
-        models.append(model_lastestpromo2months)
+#####
+        model_distance_in = Input(shape=(1,))
+        model_distance_dense = Dense(1, input_dim=1)(model_distance_in)
+        in_vec.append(model_distance_in) 
+        models.append(model_distance_dense)
 
-        model_distance = Sequential()
-        model_distance.add(Dense(1, input_dim=1))
-        models.append(model_distance)
+        model_storetype_in = Input(shape=(1,))
+        model_storetype_embedding = Embedding(5, 2, input_length=1)(model_storetype_in) 
+        model_storetype_reshape = Reshape(target_shape=(2,))(model_storetype_embedding)
+        in_vec.append(model_storetype_in) 
+        models.append(model_storetype_reshape)
 
-        model_storetype = Sequential()
-        model_storetype.add(Embedding(5, 2, input_length=1))
-        model_storetype.add(Reshape(dims=(2,)))
-        models.append(model_storetype)
+        model_assortment_in = Input(shape=(1,))
+        model_assortment_embedding = Embedding(4, 3, input_length=1)(model_assortment_in) 
+        model_assortment_reshape = Reshape(target_shape=(3,))(model_assortment_embedding)
+        in_vec.append(model_assortment_in) 
+        models.append(model_assortment_reshape)
 
-        model_assortment = Sequential()
-        model_assortment.add(Embedding(4, 3, input_length=1))
-        model_assortment.add(Reshape(dims=(3,)))
-        models.append(model_assortment)
+        model_promointerval_in = Input(shape=(1,))
+        model_promointerval_embedding = Embedding(4, 3, input_length=1)(model_promointerval_in) 
+        model_promointerval_reshape = Reshape(target_shape=(3,))(model_promointerval_embedding)
+        in_vec.append(model_promointerval_in) 
+        models.append(model_promointerval_reshape)
 
-        model_promointerval = Sequential()
-        model_promointerval.add(Embedding(4, 3, input_length=1))
-        model_promointerval.add(Reshape(dims=(3,)))
-        models.append(model_promointerval)
+        model_competyear_in = Input(shape=(1,))
+        model_competyear_embedding = Embedding(18, 4, input_length=1)(model_competyear_in) 
+        model_competyear_reshape = Reshape(target_shape=(4,))(model_competyear_embedding)
+        in_vec.append(model_competyear_in) 	
+        models.append(model_competyear_reshape)
 
-        model_competyear = Sequential()
-        model_competyear.add(Embedding(18, 4, input_length=1))
-        model_competyear.add(Reshape(dims=(4,)))
-        models.append(model_competyear)
+        model_promotyear_in = Input(shape=(1,))
+        model_promotyear_embedding = Embedding(8, 4, input_length=1)(model_promotyear_in) 
+        model_promotyear_reshape = Reshape(target_shape=(4,))(model_promotyear_embedding)
+        in_vec.append(model_promotyear_in) 	
+        models.append(model_promotyear_reshape)
 
-        model_promotyear = Sequential()
-        model_promotyear.add(Embedding(8, 4, input_length=1))
-        model_promotyear.add(Reshape(dims=(4,)))
-        models.append(model_promotyear)
+        model_germanstate_in = Input(shape=(1,))
+        model_germanstate_embedding = Embedding(12, 6, input_length=1)(model_germanstate_in) 
+        model_germanstate_reshape = Reshape(target_shape=(6,))(model_germanstate_embedding)
+        in_vec.append(model_germanstate_in) 	
+        models.append(model_germanstate_reshape)
 
-        model_germanstate = Sequential()
-        model_germanstate.add(Embedding(12, 6, input_length=1))
-        model_germanstate.add(Reshape(dims=(6,)))
-        models.append(model_germanstate)
+        model_woy_in = Input(shape=(1,))
+        model_woy_embedding = Embedding(53, 2, input_length=1)(model_woy_in) 
+        model_woy_reshape = Reshape(target_shape=(2,))(model_woy_embedding)
+        in_vec.append(model_woy_in) 	
+        models.append(model_woy_reshape)
+	
+        model_temperature_in = Input(shape=(1,)) # may break
+        model_temperature_dense = Dense(3, input_dim=3)(model_temperature_in)
+        in_vec.append(model_temperature_in)
+        models.append(model_temperature_dense)
+######
 
-        model_woy = Sequential()
-        model_woy.add(Embedding(53, 2, input_length=1))
-        model_woy.add(Reshape(dims=(2,)))
-        models.append(model_woy)
+        model_humidity_in = Input(shape=(1,)) # may break
+        model_humidity_dense = Dense(3, input_dim=3)(model_humidity_in)
+        in_vec.append(model_humidity_in)
+        models.append(model_humidity_dense)
+	
+        model_wind_in = Input(shape=(1,)) # may break
+        model_wind_dense = Dense(2, input_dim=2)(model_wind_in)
+        in_vec.append(model_wind_in)
+        models.append(model_wind_dense)
 
-        model_temperature = Sequential()
-        model_temperature.add(Dense(3, input_dim=3))
-        models.append(model_temperature)
+        model_cloud_in = Input(shape=(1,)) # may break
+        model_cloud_dense = Dense(1, input_dim=1)(model_cloud_in)
+        in_vec.append(model_cloud_in)
+        models.append(model_cloud_dense)
 
-        model_humidity = Sequential()
-        model_humidity.add(Dense(3, input_dim=3))
-        models.append(model_humidity)
+        model_weatherevent_in = Input(shape=(1,))
+        model_weatherevent_embedding = Embedding(22, 4, input_length=1)(model_weatherevent_in) 
+        model_weatherevent_reshape = Reshape(target_shape=(4,))(model_weatherevent_embedding)
+        in_vec.append(model_weatherevent_in) 	
+        models.append(model_weatherevent_reshape)
 
-        model_wind = Sequential()
-        model_wind.add(Dense(2, input_dim=2))
-        models.append(model_wind)
+        model_promo_forward_in = Input(shape=(1,))
+        model_promo_forward_embedding = Embedding(8, 1, input_length=1)(model_promo_forward_in) 
+        model_promo_forward_reshape = Reshape(target_shape=(1,))(model_promo_forward_embedding)
+        in_vec.append(model_promo_forward_in) 		
+        models.append(model_promo_forward_reshape)
 
-        model_cloud = Sequential()
-        model_cloud.add(Dense(1, input_dim=1))
-        models.append(model_cloud)
+        model_promo_backward_in = Input(shape=(1,))
+        model_promo_backward_embedding = Embedding(8, 1, input_length=1)(model_promo_backward_in) 
+        model_promo_backward_reshape = Reshape(target_shape=(1,))(model_promo_backward_embedding)
+        in_vec.append(model_promo_backward_in) 	
+        models.append(model_promo_backward_reshape)
 
-        model_weatherevent = Sequential()
-        model_weatherevent.add(Embedding(22, 4, input_length=1))
-        model_weatherevent.add(Reshape(dims=(4,)))
-        models.append(model_weatherevent)
+        model_stateholiday_forward_in = Input(shape=(1,))
+        model_stateholiday_forward_embedding = Embedding(8, 1, input_length=1)(model_stateholiday_forward_in) 
+        model_stateholiday_forward_reshape = Reshape(target_shape=(1,))(model_stateholiday_forward_embedding)
+        in_vec.append(model_stateholiday_forward_in) 	
+        models.append(model_stateholiday_forward_reshape)
 
-        model_promo_forward = Sequential()
-        model_promo_forward.add(Embedding(8, 1, input_length=1))
-        model_promo_forward.add(Reshape(dims=(1,)))
-        models.append(model_promo_forward)
+        model_sateholiday_backward_in = Input(shape=(1,))
+        model_sateholiday_backward_embedding = Embedding(8, 1, input_length=1)(model_sateholiday_backward_in) 
+        model_sateholiday_backward_reshape = Reshape(target_shape=(1,))(model_sateholiday_backward_embedding)
+        in_vec.append(model_sateholiday_backward_in) 	
+        models.append(model_sateholiday_backward_reshape)
 
-        model_promo_backward = Sequential()
-        model_promo_backward.add(Embedding(8, 1, input_length=1))
-        model_promo_backward.add(Reshape(dims=(1,)))
-        models.append(model_promo_backward)
+        model_stateholiday_count_forward_in = Input(shape=(1,))
+        model_stateholiday_count_forward_embedding = Embedding(3, 1, input_length=1)(model_stateholiday_count_forward_in) 
+        model_stateholiday_count_forward_reshape = Reshape(target_shape=(1,))(model_stateholiday_count_forward_embedding)
+        in_vec.append(model_stateholiday_count_forward_in) 	
+        models.append(model_stateholiday_count_forward_reshape)
 
-        model_stateholiday_forward = Sequential()
-        model_stateholiday_forward.add(Embedding(8, 1, input_length=1))
-        model_stateholiday_forward.add(Reshape(dims=(1,)))
-        models.append(model_stateholiday_forward)
+        model_stateholiday_count_backward_in = Input(shape=(1,))
+        model_stateholiday_count_backward_embedding = Embedding(3, 1, input_length=1)(model_stateholiday_count_backward_in) 
+        model_stateholiday_count_backward_reshape = Reshape(target_shape=(1,))(model_stateholiday_count_backward_embedding)
+        in_vec.append(model_stateholiday_count_backward_in) 	
+        models.append(model_stateholiday_count_backward_reshape)
 
-        model_sateholiday_backward = Sequential()
-        model_sateholiday_backward.add(Embedding(8, 1, input_length=1))
-        model_sateholiday_backward.add(Reshape(dims=(1,)))
-        models.append(model_sateholiday_backward)
+        model_schoolholiday_forward_in = Input(shape=(1,))
+        model_schoolholiday_forward_embedding = Embedding(8, 1, input_length=1)(model_schoolholiday_forward_in) 
+        model_schoolholiday_forward_reshape = Reshape(target_shape=(1,))(model_schoolholiday_forward_embedding)
+        in_vec.append(model_schoolholiday_forward_in) 		
+        models.append(model_schoolholiday_forward_reshape)
 
-        model_stateholiday_count_forward = Sequential()
-        model_stateholiday_count_forward.add(Embedding(3, 1, input_length=1))
-        model_stateholiday_count_forward.add(Reshape(dims=(1,)))
-        models.append(model_stateholiday_count_forward)
+        model_schoolholiday_backward_in = Input(shape=(1,))
+        model_schoolholiday_backward_embedding = Embedding(8, 1, input_length=1)(model_schoolholiday_backward_in) 
+        model_schoolholiday_backward_reshape = Reshape(target_shape=(1,))(model_schoolholiday_backward_embedding)
+        in_vec.append(model_schoolholiday_backward_in) 		
+        models.append(model_schoolholiday_backward_reshape)
+	
+        model_googletrend_de_in = Input(shape=(1,)) # may break
+        model_googletrend_de_dense = Dense(1, input_dim=1)(model_googletrend_de_in)
+        in_vec.append(model_googletrend_de_in)	
+        models.append(model_googletrend_de_dense)
 
-        model_stateholiday_count_backward = Sequential()
-        model_stateholiday_count_backward.add(Embedding(3, 1, input_length=1))
-        model_stateholiday_count_backward.add(Reshape(dims=(1,)))
-        models.append(model_stateholiday_count_backward)
-
-        model_schoolholiday_forward = Sequential()
-        model_schoolholiday_forward.add(Embedding(8, 1, input_length=1))
-        model_schoolholiday_forward.add(Reshape(dims=(1,)))
-        models.append(model_schoolholiday_forward)
-
-        model_schoolholiday_backward = Sequential()
-        model_schoolholiday_backward.add(Embedding(8, 1, input_length=1))
-        model_schoolholiday_backward.add(Reshape(dims=(1,)))
-        models.append(model_schoolholiday_backward)
-
-        model_googletrend_de = Sequential()
-        model_googletrend_de.add(Dense(1, input_dim=1))
-        models.append(model_googletrend_de)
-
-        model_googletrend_state = Sequential()
-        model_googletrend_state.add(Dense(1, input_dim=1))
-        models.append(model_googletrend_state)
+        model_googletrend_state_in = Input(shape=(1,)) # may break
+        model_googletrend_state_dense = Dense(1, input_dim=1)(model_googletrend_state_in)
+        in_vec.append(model_googletrend_state_in)			
+        models.append(model_googletrend_state_dense)
 
         # model_weather = Sequential()
         # model_weather.add(Merge([model_temperature, model_humidity, model_wind, model_weatherevent], mode='concat'))
@@ -242,16 +286,16 @@ class NN_with_EntityEmbedding(Model):
         # model_weather.add(Activation('relu'))
         # models.append(model_weather)
 
-        self.model = Sequential()
-        self.model.add(Merge(models, mode='concat'))
-        self.model.add(Dropout(0.02))
-        self.model.add(Dense(1000, init='uniform'))
-        self.model.add(Activation('relu'))
-        self.model.add(Dense(500, init='uniform'))
-        self.model.add(Activation('relu'))
-        self.model.add(Dense(1))
-        self.model.add(Activation('sigmoid'))
+        main_merger = concatenate(models)
+        main_dropout_1 = Dropout(0.02)(main_merger)
+        main_dense_1 = Dense(1000, init='uniform')(main_dropout_1)
+        main_activation_1 = Activation('relu')(main_dense_1)
+        main_dense_2 = Dense(500, init='uniform')(main_activation_1)
+        main_activation_2 = Activation('relu')(main_dense_2)
+        main_dense_3 = Dense(1)(main_activation_2)
+        main_activation_3 = Activation('sigmoid')(main_dense_3)
 
+        self.model = Model(inputs = in_vec, outputs = main_activation_3)
         self.model.compile(loss='mean_absolute_error', optimizer='adam')
 
     def _val_for_fit(self, val):
