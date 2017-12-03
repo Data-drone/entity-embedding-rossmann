@@ -106,8 +106,8 @@ def generate_forward_backward_information_accumulated(data, store_id, window_siz
 
 
 def generate_forward_backward_accumulated_all_stores():
-    train_path = "train.csv"
-    test_path = "test.csv"
+    train_path = "../data/train.csv"
+    test_path = "../data/test.csv"
 
     train_data = pd.read_csv(train_path)
     test_data = pd.read_csv(test_path)

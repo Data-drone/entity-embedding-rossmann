@@ -26,9 +26,9 @@ def set_nan_as_string(data, replace_str='0'):
         data[i] = x
 
 
-train_data = "train.csv"
-store_data = "store.csv"
-test_data = "test.csv"
+train_data = "../data/train.csv"
+store_data = "../data/store.csv"
+test_data = "../data/test.csv"
 store_states = 'store_states.csv'
 
 with open(train_data) as csvfile:
