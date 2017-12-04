@@ -18,8 +18,8 @@ from keras.layers import concatenate
 
 from prepare_nn_features import split_features
 
-
-class Model(object):
+# ahhh this is problem
+class KerasModel(object):
 
     def __init__(self, train_ratio):
         self.train_ratio = train_ratio
@@ -52,7 +52,7 @@ class Model(object):
         self.y, self.y_val = self.y[:self.train_size], self.y[self.train_size:]
 
 
-class NN_with_EntityEmbedding(Model):
+class NN_with_EntityEmbedding(KerasModel):
 
     def __init__(self, train_ratio):
         super().__init__(train_ratio)
@@ -196,18 +196,18 @@ class NN_with_EntityEmbedding(Model):
         in_vec.append(model_woy_in) 	
         models.append(model_woy_reshape)
 	
-        model_temperature_in = Input(shape=(1,)) # may break
+        model_temperature_in = Input(shape=(3,)) # may break
         model_temperature_dense = Dense(3, input_dim=3)(model_temperature_in)
         in_vec.append(model_temperature_in)
         models.append(model_temperature_dense)
 ######
 
-        model_humidity_in = Input(shape=(1,)) # may break
+        model_humidity_in = Input(shape=(3,)) # may break
         model_humidity_dense = Dense(3, input_dim=3)(model_humidity_in)
         in_vec.append(model_humidity_in)
         models.append(model_humidity_dense)
 	
-        model_wind_in = Input(shape=(1,)) # may break
+        model_wind_in = Input(shape=(2,)) # may break
         model_wind_dense = Dense(2, input_dim=2)(model_wind_in)
         in_vec.append(model_wind_in)
         models.append(model_wind_dense)
@@ -271,12 +271,12 @@ class NN_with_EntityEmbedding(Model):
         in_vec.append(model_schoolholiday_backward_in) 		
         models.append(model_schoolholiday_backward_reshape)
 	
-        model_googletrend_de_in = Input(shape=(1,)) # may break
+        model_googletrend_de_in = Input(shape=(1,)) 
         model_googletrend_de_dense = Dense(1, input_dim=1)(model_googletrend_de_in)
         in_vec.append(model_googletrend_de_in)	
         models.append(model_googletrend_de_dense)
 
-        model_googletrend_state_in = Input(shape=(1,)) # may break
+        model_googletrend_state_in = Input(shape=(1,)) 
         model_googletrend_state_dense = Dense(1, input_dim=1)(model_googletrend_state_in)
         in_vec.append(model_googletrend_state_in)			
         models.append(model_googletrend_state_dense)
@@ -297,10 +297,10 @@ class NN_with_EntityEmbedding(Model):
         main_activation_3 = Activation('sigmoid')(main_dense_3)
 
 	# something wrong here need to fix
-        model = Model(inputs = in_vec, outputs = main_activation_3)
-        model.compile(loss='mean_absolute_error', optimizer='adam')
+        NN_model = Model(inputs = in_vec, outputs = main_activation_3)
+        NN_model.compile(loss='mean_absolute_error', optimizer='adam')
 
-        self.model = model
+        self.model = NN_model
 
     def _val_for_fit(self, val):
         val = numpy.log(val) / self.max_log_y
