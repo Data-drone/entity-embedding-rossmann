@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 #from keras.layers.core import Dense, Dropout, Activation, Reshape
 #from keras.layers.embeddings import Embedding
 #from keras.layers import Merge
-from keras.callbacks import ModelCheckpoint
+from keras.callbacks import ModelCheckpoint, TensorBoard
 
 # switch over to new keras
 from keras.models import Model
@@ -59,6 +59,9 @@ class NN_with_EntityEmbedding(KerasModel):
         self.build_preprocessor(self.X)
         self.nb_epoch = 20
         self.checkpointer = ModelCheckpoint(filepath="best_model_weights.hdf5", verbose=1, save_best_only=True)
+        self.tb_check = TensorBoard(log_dir='./logs', histogram_freq=1, batch_size=32, 
+                                    write_graph=True, write_grads=True, write_images=False, 
+                                    embeddings_freq=1, embeddings_layer_names=None, embeddings_metadata=None)
         self.max_log_y = numpy.max(numpy.log(self.y))
         self.min_log_y = numpy.min(numpy.log(self.y))
         self.__build_keras_model()
@@ -314,7 +317,7 @@ class NN_with_EntityEmbedding(KerasModel):
             self.model.fit(self.preprocessing(self.X), self._val_for_fit(self.y),
                            validation_data=(self.preprocessing(self.X_val), self._val_for_fit(self.y_val)),
                            nb_epoch=self.nb_epoch, batch_size=128,
-                           # callbacks=[self.checkpointer],
+                           callbacks=[self.tb_check], # try this
                            )
             # self.model.load_weights('best_model_weights.hdf5')
             print("Result on validation data: ", self.evaluate())

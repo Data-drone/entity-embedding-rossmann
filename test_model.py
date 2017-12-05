@@ -3,9 +3,10 @@ from models import NN_with_EntityEmbedding
 import math
 import numpy
 import sys
+import dill
 sys.setrecursionlimit(10000)
 
-num_networks = 1
+num_networks = 2
 train_ratio = 0.97
 
 with open('feature_train_data.pickle', 'rb') as f:
@@ -17,8 +18,9 @@ for i in range(num_networks):
     print("Fitting NN_with_EntityEmbedding...")
     models.append(NN_with_EntityEmbedding(train_ratio))
 
+print("Saving models")
 with open('models.pickle', 'wb') as f:
-    pickle.dump(models, f, -1)
+    dill.dump(models, f, -1)
 
 
 def evaluate_models(models, num_records):
